@@ -4,7 +4,11 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_trade-imports-routing-proxy&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DEFRA_trade-imports-routing-proxy)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_trade-imports-routing-proxy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=DEFRA_trade-imports-routing-proxy)
 
-Core delivery platform Node.js Frontend Template.
+The public entry point for the Import Notification Service (INS). It will serve the public INS URLs and forward each
+request to the INS service the path addresses. For now it serves only the template's home page and `/health`, to show
+the service is up.
+
+Built from the Core Delivery Platform Node.js Frontend Template.
 
 - [Requirements](#requirements)
   - [Node.js](#nodejs)
