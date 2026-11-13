@@ -156,6 +156,46 @@ export const config = convict({
       }
     }
   },
+  defraId: {
+    oidcDiscoveryUrl: {
+      doc: 'Defra ID OIDC well-known configuration URL',
+      format: String,
+      default:
+        'http://localhost:3007/idphub/b2c/b2c_1a_cui_cpdev_signupsigninsfi/.well-known/openid-configuration',
+      env: 'DEFRA_ID_OIDC_CONFIGURATION_URL'
+    },
+    clientId: {
+      doc: 'Defra ID client ID',
+      format: String,
+      default: 'test-client-id',
+      env: 'DEFRA_ID_CLIENT_ID'
+    },
+    clientSecret: {
+      doc: 'Defra ID client secret',
+      format: String,
+      default: 'test-secret',
+      env: 'DEFRA_ID_CLIENT_SECRET',
+      sensitive: true
+    },
+    serviceId: {
+      doc: 'Defra ID service ID',
+      format: String,
+      default: 'trade-imports-routing-proxy',
+      env: 'DEFRA_ID_SERVICE_ID'
+    },
+    policy: {
+      doc: 'Defra ID B2C policy name',
+      format: String,
+      default: 'b2c_1a_cui_cpdev_signupsigninsfi',
+      env: 'DEFRA_ID_POLICY'
+    },
+    redirectUrl: {
+      doc: 'Redirect URL after Defra ID sign-in (OIDC callback)',
+      format: String,
+      default: 'http://localhost:3004/auth/sign-in-oidc',
+      env: 'DEFRA_ID_REDIRECT_URL'
+    }
+  },
   redis: {
     host: {
       doc: 'Redis cache host',
