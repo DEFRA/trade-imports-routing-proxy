@@ -160,7 +160,7 @@ describe('Sign-in routes', () => {
     )
   })
 
-  test('A completed sign-in redirects to the signed-in page, which shows every ID token claim and the token response', async () => {
+  test('A completed sign-in redirects to the signed-in page, which shows every ID token claim, says the access token is the ID token and shows the token response', async () => {
     const idToken = signToken(idTokenClaims)
     const { iat } = Jwt.token.decode(idToken).decoded.payload
     const callback = await server.inject({
@@ -190,6 +190,12 @@ describe('Sign-in routes', () => {
       ['roles', '["5900001:Agent:3"]'],
       ['iat', String(iat)]
     ])
+    expect($('[data-testid="access-token-claims"]')).toHaveLength(0)
+    expect(
+      $('.govuk-grid-column-full > p.govuk-body')
+        .map((_index, paragraph) => $(paragraph).text().trim())
+        .get()
+    ).toEqual(['The access token is the ID token.'])
     expect(summaryRows($, 'token-response')).toEqual([
       ['expires_in', '86400'],
       ['scope', 'openid offline_access'],
@@ -197,16 +203,15 @@ describe('Sign-in routes', () => {
     ])
   })
 
-  test('A completed sign-in with a different access token shows the access token claims', async () => {
+  test('A completed sign-in with a different access token shows every access token claim', async () => {
+    const accessToken = signToken({ scp: 'user_impersonation' })
+    const { iat } = Jwt.token.decode(accessToken).decoded.payload
     const callback = await server.inject({
       method: 'GET',
       url: '/auth/sign-in-oidc',
       auth: {
         strategy: 'defra-id',
-        credentials: bellCredentials(
-          signToken(idTokenClaims),
-          signToken({ scp: 'user_impersonation' })
-        )
+        credentials: bellCredentials(signToken(idTokenClaims), accessToken)
       }
     })
 
@@ -217,9 +222,10 @@ describe('Sign-in routes', () => {
     })
     const $ = cheerio.load(signedIn.payload)
 
-    expect(summaryRows($, 'access-token-claims')).toEqual(
-      expect.arrayContaining([['scp', 'user_impersonation']])
-    )
+    expect(summaryRows($, 'access-token-claims')).toEqual([
+      ['scp', 'user_impersonation'],
+      ['iat', String(iat)]
+    ])
   })
 
   test('A completed sign-in fetches the published keys with the request trace id', async () => {
