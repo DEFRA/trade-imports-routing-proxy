@@ -29,7 +29,7 @@ function bellCredentials(idToken, accessToken = idToken) {
   }
 }
 
-function sessionCookieOf(response) {
+function cookieHeaderFrom(response) {
   return response.headers['set-cookie']
     .map((cookie) => cookie.split(';')[0])
     .join('; ')
@@ -166,7 +166,7 @@ describe('Sign-in routes', () => {
     const signedIn = await server.inject({
       method: 'GET',
       url: '/auth/signed-in',
-      headers: { cookie: sessionCookieOf(callback) }
+      headers: { cookie: cookieHeaderFrom(callback) }
     })
     const $ = cheerio.load(signedIn.payload)
 
@@ -201,7 +201,7 @@ describe('Sign-in routes', () => {
     const signedIn = await server.inject({
       method: 'GET',
       url: '/auth/signed-in',
-      headers: { cookie: sessionCookieOf(callback) }
+      headers: { cookie: cookieHeaderFrom(callback) }
     })
     const $ = cheerio.load(signedIn.payload)
 
@@ -244,7 +244,7 @@ describe('Sign-in routes', () => {
     const signedIn = await server.inject({
       method: 'GET',
       url: '/auth/signed-in',
-      headers: { cookie: sessionCookieOf(callback) }
+      headers: { cookie: cookieHeaderFrom(callback) }
     })
 
     expect(callback.statusCode).toBe(statusCodes.unauthorized)
