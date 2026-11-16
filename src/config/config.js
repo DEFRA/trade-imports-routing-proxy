@@ -8,6 +8,7 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const fourHoursMs = 14400000
 const oneWeekMs = 604800000
+const defraIdStubPolicy = 'b2c_1a_cui_cpdev_signupsigninsfi'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isTest = process.env.NODE_ENV === 'test'
@@ -160,8 +161,7 @@ export const config = convict({
     oidcDiscoveryUrl: {
       doc: 'Defra ID OIDC well-known configuration URL',
       format: 'url',
-      default:
-        'http://localhost:3007/idphub/b2c/b2c_1a_cui_cpdev_signupsigninsfi/.well-known/openid-configuration',
+      default: `http://localhost:3007/idphub/b2c/${defraIdStubPolicy}/.well-known/openid-configuration`,
       env: 'DEFRA_ID_OIDC_CONFIGURATION_URL'
     },
     clientId: {
@@ -186,7 +186,7 @@ export const config = convict({
     policy: {
       doc: 'Defra ID B2C policy name',
       format: String,
-      default: 'b2c_1a_cui_cpdev_signupsigninsfi',
+      default: defraIdStubPolicy,
       env: 'DEFRA_ID_POLICY'
     },
     redirectUrl: {

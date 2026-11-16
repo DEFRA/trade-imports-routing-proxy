@@ -2,10 +2,12 @@ import { generateKeyPairSync } from 'node:crypto'
 import { createServer } from 'node:http'
 import Jwt from '@hapi/jwt'
 
-const providerOrigin = 'http://localhost:3007'
+import { config } from '#/config/config.js'
+
 const signingKeyId = 'test-signing-key'
 
-export const discoveryUrl = `${providerOrigin}/idphub/b2c/b2c_1a_cui_cpdev_signupsigninsfi/.well-known/openid-configuration`
+export const discoveryUrl = config.get('defraId.oidcDiscoveryUrl')
+const providerOrigin = new URL(discoveryUrl).origin
 
 export const discoveryDocument = {
   issuer: `${providerOrigin}/issuer/v2.0/`,
