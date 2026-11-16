@@ -14,7 +14,7 @@ describe('#serveStaticFiles', () => {
       await server.stop({ timeout: 0 })
     })
 
-    test('Should serve favicon as expected', async () => {
+    test('Should answer GET /favicon.ico with 204 No Content', async () => {
       const { statusCode } = await server.inject({
         method: 'GET',
         url: '/favicon.ico'
