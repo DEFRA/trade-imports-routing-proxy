@@ -2,10 +2,9 @@ import Boom from '@hapi/boom'
 import Jwt from '@hapi/jwt'
 
 import { readVerifiedClaims } from '#/server/common/helpers/oidc-provider.js'
-import { signInPath } from './paths.js'
+import { signedInPath, signInPath } from './paths.js'
 
 const signInSessionKey = 'signIn'
-const signedInPath = '/auth/signed-in'
 
 function claimRows(claims) {
   return Object.entries(claims).map(([name, value]) => ({

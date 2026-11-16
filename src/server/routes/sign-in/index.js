@@ -3,7 +3,7 @@ import {
   signInCallbackController,
   signedInController
 } from './controller.js'
-import { signInPath } from './paths.js'
+import { callbackPath, signedInPath, signInPath } from './paths.js'
 
 export const signIn = {
   plugin: {
@@ -18,13 +18,13 @@ export const signIn = {
         },
         {
           method: 'GET',
-          path: '/auth/sign-in-oidc',
+          path: callbackPath,
           options: { auth: { strategy: 'defra-id', mode: 'try' } },
           ...signInCallbackController
         },
         {
           method: 'GET',
-          path: '/auth/signed-in',
+          path: signedInPath,
           ...signedInController
         }
       ])

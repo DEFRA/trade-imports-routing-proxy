@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url'
 
 import convictFormatWithValidator from 'convict-format-with-validator'
 
+import { callbackPath } from '#/server/routes/sign-in/paths.js'
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const fourHoursMs = 14400000
@@ -193,7 +195,7 @@ export const config = convict({
     redirectUrl: {
       doc: 'Redirect URL after Defra ID sign-in (OIDC callback)',
       format: 'url',
-      default: `http://localhost:${defaultPort}/auth/sign-in-oidc`,
+      default: `http://localhost:${defaultPort}${callbackPath}`,
       env: 'DEFRA_ID_REDIRECT_URL'
     }
   },
