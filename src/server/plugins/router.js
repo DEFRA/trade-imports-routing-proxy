@@ -8,39 +8,36 @@ import { cookies } from '../routes/cookies/controller.js'
 import { serveStaticFiles } from './serve-static-files.js'
 import { config } from '#/config/config.js'
 
+async function registerStaticAssets(server) {
+  if (config.get('isProduction') || config.get('isTest')) {
+    server.register(serveStaticFiles)
+    return
+  }
+
+  const createViteServer = (await import('vite')).createServer
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'custom'
+  })
+
+  await server.register({
+    plugin: (await import('@defra/hapi-connect')).default,
+    options: {
+      path: '/public',
+      middleware: [vite.middlewares]
+    }
+  })
+}
+
 export const router = {
   plugin: {
     name: 'router',
     async register(server) {
       await server.register([inert])
-      // Health-check route. Used by platform to check if service is running, do not remove!
       await server.register([health])
-      // Cookie consent & policy page
       await server.register([cookies])
-
-      // Application specific routes, add your own routes here
       await server.register([home, about, signIn])
-
-      // Static assets
-      if (!config.get('isProduction') && !config.get('isTest')) {
-        await (async () => {
-          const createViteServer = (await import('vite')).createServer
-          const vite = await createViteServer({
-            server: { middlewareMode: true },
-            appType: 'custom'
-          })
-
-          await server.register({
-            plugin: (await import('@defra/hapi-connect')).default,
-            options: {
-              path: '/public',
-              middleware: [vite.middlewares]
-            }
-          })
-        })()
-      } else {
-        server.register(serveStaticFiles)
-      }
+      await registerStaticAssets(server)
     }
   }
 }
