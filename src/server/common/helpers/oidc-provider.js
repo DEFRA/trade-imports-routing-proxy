@@ -51,12 +51,15 @@ export async function getOidcConfigWithRetry(logger) {
 
 /**
  * Checks a token's RS256 signature against the identity provider's published
- * keys, and returns its claims. Throws when no published key signed it.
+ * keys, its expiry and its issuer, and returns its claims. Does not check the
+ * audience. Throws when any check fails.
  * @param {string} token
- * @param {string} jwksUri
+ * @param {object} identityProvider
+ * @param {string} identityProvider.jwksUri
+ * @param {string} identityProvider.issuer the issuer the token must name
  * @returns {Promise<Record<string, any>>} the token's claims
  */
-export async function readVerifiedClaims(token, jwksUri) {
+export async function readVerifiedClaims(token, { jwksUri, issuer }) {
   const decoded = Jwt.token.decode(token)
   const { kid } = decoded.decoded.header
   const { keys } = await fetchJson(jwksUri)
@@ -70,7 +73,11 @@ export async function readVerifiedClaims(token, jwksUri) {
     type: 'spki',
     format: 'pem'
   })
-  Jwt.token.verifySignature(decoded, { key: publicKey, algorithm: 'RS256' })
+  Jwt.token.verify(
+    decoded,
+    { key: publicKey, algorithm: 'RS256' },
+    { aud: false, iss: issuer }
+  )
 
   return decoded.decoded.payload
 }

@@ -106,7 +106,14 @@ describe('#signInCallbackController', () => {
           signToken({ ...idTokenClaims, correlationId: 'correlation-1' })
         )
       },
-      server: { app: { defraId: { jwksUri: discoveryDocument.jwks_uri } } },
+      server: {
+        app: {
+          defraId: {
+            jwksUri: discoveryDocument.jwks_uri,
+            issuer: discoveryDocument.issuer
+          }
+        }
+      },
       yar: { set: vi.fn() },
       logger
     }
@@ -162,7 +169,7 @@ describe('Sign-in routes', () => {
 
   test('A completed sign-in redirects to the signed-in page, which shows every ID token claim, says the access token is the ID token and shows the token response', async () => {
     const idToken = signToken(idTokenClaims)
-    const { iat } = Jwt.token.decode(idToken).decoded.payload
+    const { iat, exp } = Jwt.token.decode(idToken).decoded.payload
     const callback = await server.inject({
       method: 'GET',
       url: '/auth/sign-in-oidc',
@@ -184,11 +191,13 @@ describe('Sign-in routes', () => {
 
     expect(signedIn.statusCode).toBe(statusCodes.ok)
     expect(summaryRows($, 'id-token-claims')).toEqual([
+      ['iss', discoveryDocument.issuer],
       ['sessionId', 'session-1'],
       ['contactId', '2100010101'],
       ['firstName', 'Andrew'],
       ['roles', '["5900001:Agent:3"]'],
-      ['iat', String(iat)]
+      ['iat', String(iat)],
+      ['exp', String(exp)]
     ])
     expect($('[data-testid="access-token-claims"]')).toHaveLength(0)
     expect(
@@ -205,7 +214,7 @@ describe('Sign-in routes', () => {
 
   test('A completed sign-in with a different access token shows every access token claim', async () => {
     const accessToken = signToken({ scp: 'user_impersonation' })
-    const { iat } = Jwt.token.decode(accessToken).decoded.payload
+    const { iat, exp } = Jwt.token.decode(accessToken).decoded.payload
     const callback = await server.inject({
       method: 'GET',
       url: '/auth/sign-in-oidc',
@@ -223,8 +232,10 @@ describe('Sign-in routes', () => {
     const $ = cheerio.load(signedIn.payload)
 
     expect(summaryRows($, 'access-token-claims')).toEqual([
+      ['iss', discoveryDocument.issuer],
       ['scp', 'user_impersonation'],
-      ['iat', String(iat)]
+      ['iat', String(iat)],
+      ['exp', String(exp)]
     ])
   })
 
@@ -350,15 +361,17 @@ describe('Sign-in through the identity provider token endpoint', () => {
       headers: { cookie: cookieHeaderFrom(callback) }
     })
     const $ = cheerio.load(signedIn.payload)
-    const { iat } = Jwt.token.decode(idToken).decoded.payload
+    const { iat, exp } = Jwt.token.decode(idToken).decoded.payload
 
     expect(callback.headers.location).toBe('/auth/signed-in')
     expect(summaryRows($, 'id-token-claims')).toEqual([
+      ['iss', discoveryDocument.issuer],
       ['sessionId', 'session-1'],
       ['contactId', '2100010101'],
       ['firstName', 'Andrew'],
       ['roles', '["5900001:Agent:3"]'],
-      ['iat', String(iat)]
+      ['iat', String(iat)],
+      ['exp', String(exp)]
     ])
     expect(summaryRows($, 'token-response')).toEqual([
       ['expires_in', '3600'],

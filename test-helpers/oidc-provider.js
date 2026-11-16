@@ -27,12 +27,12 @@ export function signToken(
   { privateKey = signingKeys.privateKey, kid = signingKeyId } = {}
 ) {
   return Jwt.token.generate(
-    claims,
+    { iss: discoveryDocument.issuer, ...claims },
     {
       key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
       algorithm: 'RS256'
     },
-    { header: { kid } }
+    { header: { kid }, ttlSec: 3600 }
   )
 }
 
