@@ -144,7 +144,7 @@ describe('Sign-in routes', () => {
     })
 
     const location = new URL(response.headers.location)
-    expect(response.statusCode).toBe(statusCodes.found)
+    expect(response.statusCode).toBe(statusCodes.redirectFound)
     expect(`${location.origin}${location.pathname}`).toBe(
       discoveryDocument.authorization_endpoint
     )
@@ -172,7 +172,7 @@ describe('Sign-in routes', () => {
       }
     })
 
-    expect(callback.statusCode).toBe(statusCodes.found)
+    expect(callback.statusCode).toBe(statusCodes.redirectFound)
     expect(callback.headers.location).toBe('/auth/signed-in')
 
     const signedIn = await server.inject({
@@ -297,7 +297,7 @@ describe('Sign-in routes', () => {
       url: '/auth/signed-in'
     })
 
-    expect(response.statusCode).toBe(statusCodes.found)
+    expect(response.statusCode).toBe(statusCodes.redirectFound)
     expect(response.headers.location).toBe('/auth/sign-in')
   })
 })

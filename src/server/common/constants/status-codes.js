@@ -1,7 +1,7 @@
 export const statusCodes = {
   ok: 200,
   noContent: 204,
-  found: 302,
+  redirectFound: 302,
   badRequest: 400,
   unauthorized: 401,
   forbidden: 403,
