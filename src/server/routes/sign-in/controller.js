@@ -90,6 +90,7 @@ export const signInCallbackController = {
     })
     request.logger.info(
       {
+        contactId: idTokenClaims.contactId,
         sessionId: idTokenClaims.sessionId,
         correlationId: idTokenClaims.correlationId
       },

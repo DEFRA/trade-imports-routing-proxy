@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio'
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 import { config } from '#/config/config.js'
-import { describeSignIn } from './controller.js'
+import { describeSignIn, signInCallbackController } from './controller.js'
 import {
   discoveryDocument,
   generateUnpublishedKey,
@@ -83,6 +83,35 @@ describe('#describeSignIn', () => {
     expect(accessTokenClaims).toEqual([
       { key: { text: 'scp' }, value: { text: 'user_impersonation' } }
     ])
+  })
+})
+
+describe('#signInCallbackController', () => {
+  test('Should log the completed sign-in with the contact, session and correlation ids', async () => {
+    const logger = { info: vi.fn(), warn: vi.fn() }
+    const request = {
+      auth: {
+        isAuthenticated: true,
+        credentials: bellCredentials(
+          signToken({ ...idTokenClaims, correlationId: 'correlation-1' })
+        )
+      },
+      route: { settings: { app: { jwksUri: discoveryDocument.jwks_uri } } },
+      yar: { set: vi.fn() },
+      logger
+    }
+    const h = { redirect: vi.fn() }
+
+    await signInCallbackController.handler(request, h)
+
+    expect(logger.info).toHaveBeenCalledWith(
+      {
+        contactId: 2100010101,
+        sessionId: 'session-1',
+        correlationId: 'correlation-1'
+      },
+      'Defra ID sign-in completed'
+    )
   })
 })
 
