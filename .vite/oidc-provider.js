@@ -1,4 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto'
+import { createServer } from 'node:http'
 import Jwt from '@hapi/jwt'
 
 const providerOrigin = 'http://localhost:3007'
@@ -40,14 +41,27 @@ const publishedKeys = {
   ]
 }
 
-export function serveOidcProvider() {
+export function serveOidcProvider(discovery = discoveryDocument) {
   global.fetch.mockResponse((request) => {
     if (request.url === discoveryUrl) {
-      return JSON.stringify(discoveryDocument)
+      return JSON.stringify(discovery)
     }
     if (request.url === discoveryDocument.jwks_uri) {
       return JSON.stringify(publishedKeys)
     }
     return { status: 404, body: '' }
   })
+}
+
+export async function startTokenEndpoint(tokenResponse) {
+  const tokenServer = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'application/json' })
+    response.end(JSON.stringify(tokenResponse))
+  })
+  await new Promise((resolve) => tokenServer.listen(0, '127.0.0.1', resolve))
+
+  return {
+    url: `http://127.0.0.1:${tokenServer.address().port}/oauth2/v2.0/token`,
+    stop: () => new Promise((resolve) => tokenServer.close(resolve))
+  }
 }

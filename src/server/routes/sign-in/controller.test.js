@@ -8,7 +8,9 @@ import { describeSignIn, signInCallbackController } from './controller.js'
 import {
   discoveryDocument,
   generateUnpublishedKey,
-  signToken
+  serveOidcProvider,
+  signToken,
+  startTokenEndpoint
 } from '../../../../.vite/oidc-provider.js'
 
 const idTokenClaims = {
@@ -297,5 +299,65 @@ describe('Sign-in routes', () => {
 
     expect(response.statusCode).toBe(statusCodes.found)
     expect(response.headers.location).toBe('/auth/sign-in')
+  })
+})
+
+describe('Sign-in through the identity provider token endpoint', () => {
+  const idToken = signToken(idTokenClaims)
+  let tokenEndpoint
+  let server
+
+  beforeAll(async () => {
+    tokenEndpoint = await startTokenEndpoint({
+      access_token: idToken,
+      id_token: idToken,
+      token_type: 'Bearer',
+      expires_in: 3600,
+      scope: 'openid offline_access',
+      refresh_token: 'refresh-token-1'
+    })
+    serveOidcProvider({
+      ...discoveryDocument,
+      token_endpoint: tokenEndpoint.url
+    })
+    server = await createServer()
+    await server.initialize()
+  })
+
+  afterAll(async () => {
+    await server.stop({ timeout: 0 })
+    await tokenEndpoint.stop()
+  })
+
+  test('A callback with the code and state shows the ID token claims and the token response the token endpoint returned', async () => {
+    const signIn = await server.inject({ method: 'GET', url: '/auth/sign-in' })
+    const state = new URL(signIn.headers.location).searchParams.get('state')
+
+    const callback = await server.inject({
+      method: 'GET',
+      url: `/auth/sign-in-oidc?code=code-1&state=${state}`,
+      headers: { cookie: cookieHeaderFrom(signIn) }
+    })
+    const signedIn = await server.inject({
+      method: 'GET',
+      url: '/auth/signed-in',
+      headers: { cookie: cookieHeaderFrom(callback) }
+    })
+    const $ = cheerio.load(signedIn.payload)
+    const { iat } = Jwt.token.decode(idToken).decoded.payload
+
+    expect(callback.headers.location).toBe('/auth/signed-in')
+    expect(summaryRows($, 'id-token-claims')).toEqual([
+      ['sessionId', 'session-1'],
+      ['contactId', '2100010101'],
+      ['firstName', 'Andrew'],
+      ['roles', '["5900001:Agent:3"]'],
+      ['iat', String(iat)]
+    ])
+    expect(summaryRows($, 'token-response')).toEqual([
+      ['expires_in', '3600'],
+      ['scope', 'openid offline_access'],
+      ['refresh token returned', 'Yes']
+    ])
   })
 })
