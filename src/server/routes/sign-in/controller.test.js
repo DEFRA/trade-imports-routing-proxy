@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import Jwt from '@hapi/jwt'
 
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
@@ -157,13 +158,15 @@ describe('Sign-in routes', () => {
     )
   })
 
-  test('A completed sign-in redirects to the signed-in page, which shows its claims', async () => {
+  test('A completed sign-in redirects to the signed-in page, which shows every ID token claim and the token response', async () => {
+    const idToken = signToken(idTokenClaims)
+    const { iat } = Jwt.token.decode(idToken).decoded.payload
     const callback = await server.inject({
       method: 'GET',
       url: '/auth/sign-in-oidc',
       auth: {
         strategy: 'defra-id',
-        credentials: bellCredentials(signToken(idTokenClaims))
+        credentials: bellCredentials(idToken)
       }
     })
 
@@ -178,13 +181,13 @@ describe('Sign-in routes', () => {
     const $ = cheerio.load(signedIn.payload)
 
     expect(signedIn.statusCode).toBe(statusCodes.ok)
-    expect(summaryRows($, 'id-token-claims')).toEqual(
-      expect.arrayContaining([
-        ['sessionId', 'session-1'],
-        ['contactId', '2100010101'],
-        ['firstName', 'Andrew']
-      ])
-    )
+    expect(summaryRows($, 'id-token-claims')).toEqual([
+      ['sessionId', 'session-1'],
+      ['contactId', '2100010101'],
+      ['firstName', 'Andrew'],
+      ['roles', '["5900001:Agent:3"]'],
+      ['iat', String(iat)]
+    ])
     expect(summaryRows($, 'token-response')).toEqual([
       ['expires_in', '86400'],
       ['scope', 'openid offline_access'],
