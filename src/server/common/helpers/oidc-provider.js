@@ -1,10 +1,14 @@
 import { createPublicKey } from 'node:crypto'
 import Jwt from '@hapi/jwt'
+import { withTraceId } from '@defra/hapi-tracing'
 
 import { config } from '#/config/config.js'
 
 async function fetchJson(url) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(5000) })
+  const response = await fetch(url, {
+    headers: withTraceId(config.get('tracing.header')),
+    signal: AbortSignal.timeout(5000)
+  })
 
   if (!response.ok) {
     throw new Error(`${url} answered ${response.status}`)

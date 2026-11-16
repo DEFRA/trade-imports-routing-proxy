@@ -166,6 +166,25 @@ describe('Sign-in routes', () => {
     ])
   })
 
+  test('A completed sign-in fetches the published keys with the request trace id', async () => {
+    const tracingHeader = config.get('tracing.header')
+    global.fetch.mockClear()
+
+    await server.inject({
+      method: 'GET',
+      url: '/auth/sign-in-oidc',
+      headers: { [tracingHeader]: 'trace-1' },
+      auth: {
+        strategy: 'defra-id',
+        credentials: bellCredentials(signToken(idTokenClaims))
+      }
+    })
+
+    const [jwksRequest] = global.fetch.requests()
+    expect(jwksRequest.url).toBe(discoveryDocument.jwks_uri)
+    expect(jwksRequest.headers.get(tracingHeader)).toBe('trace-1')
+  })
+
   test('A token signed by an unpublished key is refused and nothing is kept', async () => {
     const callback = await server.inject({
       method: 'GET',
