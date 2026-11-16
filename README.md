@@ -5,8 +5,9 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_trade-imports-routing-proxy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=DEFRA_trade-imports-routing-proxy)
 
 The public entry point for the Import Notification Service (INS). It will serve the public INS URLs and forward each
-request to the INS service the path addresses. For now it serves only the template's home page and `/health`, to show
-the service is up.
+request to the INS service the path addresses. For now it serves the template's pages and `/health`, and signs a user
+in through the Defra ID stub (`/auth/sign-in`, `/auth/sign-in-oidc` and `/auth/signed-in`) to show what the sign-in
+returns.
 
 Built from the Core Delivery Platform Node.js Frontend Template.
 
