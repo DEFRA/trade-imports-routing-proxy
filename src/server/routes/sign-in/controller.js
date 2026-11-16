@@ -20,28 +20,21 @@ function claimRows(claims) {
  * the token response's metadata. Never the tokens themselves.
  * @param {object} signIn
  * @param {Record<string, any>} signIn.idTokenClaims
- * @param {string} signIn.idToken
- * @param {string} signIn.accessToken
+ * @param {Record<string, any>} [signIn.accessTokenClaims]
  * @param {number} signIn.expiresIn
  * @param {string} signIn.scope
  * @param {boolean} signIn.refreshTokenReturned
  */
 export function describeSignIn({
   idTokenClaims,
-  idToken,
-  accessToken,
+  accessTokenClaims,
   expiresIn,
   scope,
   refreshTokenReturned
 }) {
-  const accessTokenClaims =
-    accessToken === idToken
-      ? undefined
-      : claimRows(Jwt.token.decode(accessToken).decoded.payload)
-
   return {
     idTokenClaims: claimRows(idTokenClaims),
-    accessTokenClaims,
+    accessTokenClaims: accessTokenClaims && claimRows(accessTokenClaims),
     tokenResponse: [
       { key: { text: 'expires_in' }, value: { text: String(expiresIn) } },
       { key: { text: 'scope' }, value: { text: scope } },
@@ -51,6 +44,12 @@ export function describeSignIn({
       }
     ]
   }
+}
+
+function decodedAccessTokenClaims(accessToken, idToken) {
+  return accessToken === idToken
+    ? undefined
+    : Jwt.token.decode(accessToken).decoded.payload
 }
 
 export const signInController = {
@@ -82,10 +81,13 @@ export const signInCallbackController = {
       throw Boom.unauthorized()
     }
 
-    request.yar.set(
-      signInSessionKey,
-      describeSignIn({ idTokenClaims, accessToken, ...profile })
-    )
+    request.yar.set(signInSessionKey, {
+      idTokenClaims,
+      accessTokenClaims: decodedAccessTokenClaims(accessToken, profile.idToken),
+      expiresIn: profile.expiresIn,
+      scope: profile.scope,
+      refreshTokenReturned: profile.refreshTokenReturned
+    })
     request.logger.info(
       {
         sessionId: idTokenClaims.sessionId,
@@ -110,7 +112,7 @@ export const signedInController = {
     return h.view('sign-in/signed-in', {
       pageTitle: 'Signed in',
       heading: 'Signed in',
-      signIn
+      signIn: describeSignIn(signIn)
     })
   }
 }

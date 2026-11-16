@@ -47,14 +47,10 @@ function summaryRows($, testId) {
 }
 
 describe('#describeSignIn', () => {
-  test('Should list the ID token claims and the token response metadata, and no token', () => {
-    const idToken = signToken(idTokenClaims)
-
+  test('Should list the ID token claims and the token response metadata as summary-list rows', () => {
     expect(
       describeSignIn({
         idTokenClaims,
-        idToken,
-        accessToken: idToken,
         expiresIn: 86400,
         scope: 'openid offline_access',
         refreshTokenReturned: true
@@ -75,24 +71,18 @@ describe('#describeSignIn', () => {
     })
   })
 
-  test('Should list the access token claims when the access token is a different token', () => {
-    const idToken = signToken(idTokenClaims)
-    const accessToken = signToken({ scp: 'user_impersonation' })
-
+  test('Should list the access token claims as summary-list rows when there are some', () => {
     const { accessTokenClaims } = describeSignIn({
       idTokenClaims,
-      idToken,
-      accessToken,
+      accessTokenClaims: { scp: 'user_impersonation' },
       expiresIn: 3600,
       scope: 'openid',
       refreshTokenReturned: false
     })
 
-    expect(accessTokenClaims).toEqual(
-      expect.arrayContaining([
-        { key: { text: 'scp' }, value: { text: 'user_impersonation' } }
-      ])
-    )
+    expect(accessTokenClaims).toEqual([
+      { key: { text: 'scp' }, value: { text: 'user_impersonation' } }
+    ])
   })
 })
 
@@ -164,6 +154,31 @@ describe('Sign-in routes', () => {
       ['scope', 'openid offline_access'],
       ['refresh token returned', 'Yes']
     ])
+  })
+
+  test('A completed sign-in with a different access token shows the access token claims', async () => {
+    const callback = await server.inject({
+      method: 'GET',
+      url: '/auth/sign-in-oidc',
+      auth: {
+        strategy: 'defra-id',
+        credentials: bellCredentials(
+          signToken(idTokenClaims),
+          signToken({ scp: 'user_impersonation' })
+        )
+      }
+    })
+
+    const signedIn = await server.inject({
+      method: 'GET',
+      url: '/auth/signed-in',
+      headers: { cookie: sessionCookieOf(callback) }
+    })
+    const $ = cheerio.load(signedIn.payload)
+
+    expect(summaryRows($, 'access-token-claims')).toEqual(
+      expect.arrayContaining([['scp', 'user_impersonation']])
+    )
   })
 
   test('A completed sign-in fetches the published keys with the request trace id', async () => {
