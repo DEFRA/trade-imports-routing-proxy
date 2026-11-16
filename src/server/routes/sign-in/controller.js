@@ -15,15 +15,19 @@ function claimRows(claims) {
 }
 
 /**
- * The parts of a completed sign-in the signed-in page shows: every claim of
- * the ID token, the access token's claims when it is a different token, and
- * the token response's metadata. Never the tokens themselves.
+ * Returns the ID token claims, the access token claims when given, and the
+ * token response metadata, as summary-list rows. Never includes a token.
  * @param {object} signIn
  * @param {Record<string, any>} signIn.idTokenClaims
  * @param {Record<string, any>} [signIn.accessTokenClaims]
  * @param {number} signIn.expiresIn
  * @param {string} signIn.scope
  * @param {boolean} signIn.refreshTokenReturned
+ * @returns {{
+ *   idTokenClaims: object[],
+ *   accessTokenClaims: object[] | undefined,
+ *   tokenResponse: object[]
+ * }} summary-list rows in three groups; accessTokenClaims is undefined when no access token claims are given
  */
 export function describeSignIn({
   idTokenClaims,
