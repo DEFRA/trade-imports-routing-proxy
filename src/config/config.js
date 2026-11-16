@@ -8,6 +8,7 @@ const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const fourHoursMs = 14400000
 const oneWeekMs = 604800000
+const defaultPort = 3000
 const defraIdStubPolicy = 'b2c_1a_cui_cpdev_signupsigninsfi'
 
 const isProduction = process.env.NODE_ENV === 'production'
@@ -33,7 +34,7 @@ export const config = convict({
   port: {
     doc: 'The port to bind.',
     format: 'port',
-    default: 3000,
+    default: defaultPort,
     env: 'PORT'
   },
   staticCacheTimeout: {
@@ -192,7 +193,7 @@ export const config = convict({
     redirectUrl: {
       doc: 'Redirect URL after Defra ID sign-in (OIDC callback)',
       format: 'url',
-      default: 'http://localhost:3004/auth/sign-in-oidc',
+      default: `http://localhost:${defaultPort}/auth/sign-in-oidc`,
       env: 'DEFRA_ID_REDIRECT_URL'
     }
   },
