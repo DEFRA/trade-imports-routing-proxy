@@ -106,7 +106,7 @@ describe('#signInCallbackController', () => {
           signToken({ ...idTokenClaims, correlationId: 'correlation-1' })
         )
       },
-      route: { settings: { app: { jwksUri: discoveryDocument.jwks_uri } } },
+      server: { app: { defraId: { jwksUri: discoveryDocument.jwks_uri } } },
       yar: { set: vi.fn() },
       logger
     }

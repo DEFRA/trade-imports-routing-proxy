@@ -78,7 +78,7 @@ export const signInCallbackController = {
     try {
       idTokenClaims = await readVerifiedClaims(
         profile.idToken,
-        request.route.settings.app.jwksUri
+        request.server.app.defraId.jwksUri
       )
     } catch (err) {
       request.logger.warn({ err }, 'Defra ID token refused')

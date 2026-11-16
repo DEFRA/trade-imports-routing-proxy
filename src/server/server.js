@@ -16,6 +16,7 @@ import { contentSecurityPolicy } from './plugins/content-security-policy.js'
 import { metrics } from '@defra/cdp-metrics'
 import { cookieConsent } from '#/server/plugins/cookie-consent.js'
 import { csrf } from '#/server/plugins/csrf.js'
+import { auth } from '#/server/plugins/auth.js'
 
 export async function createServer() {
   const server = hapi.server({
@@ -66,6 +67,7 @@ export async function createServer() {
     Scooter,
     csrf,
     cookieConsent,
+    auth,
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 
