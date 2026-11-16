@@ -56,14 +56,24 @@ describe('#readVerifiedClaims', () => {
     )
   })
 
-  test('Should refuse a token signed by an unpublished key', async () => {
+  test('Should refuse a token whose kid names no published key', async () => {
+    const token = signToken({ sessionId: 'session-1' }, { kid: 'retired-key' })
+
+    await expect(
+      readVerifiedClaims(token, discoveryDocument.jwks_uri)
+    ).rejects.toThrow(
+      `No key retired-key published at ${discoveryDocument.jwks_uri}`
+    )
+  })
+
+  test('Should refuse a token signed by a key other than the published one with its kid', async () => {
     const token = signToken(
       { sessionId: 'session-1' },
-      generateUnpublishedKey()
+      { privateKey: generateUnpublishedKey() }
     )
 
     await expect(
       readVerifiedClaims(token, discoveryDocument.jwks_uri)
-    ).rejects.toThrow()
+    ).rejects.toThrow('Invalid token signature')
   })
 })

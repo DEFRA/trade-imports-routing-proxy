@@ -248,7 +248,7 @@ describe('Sign-in routes', () => {
       auth: {
         strategy: 'defra-id',
         credentials: bellCredentials(
-          signToken(idTokenClaims, generateUnpublishedKey())
+          signToken(idTokenClaims, { privateKey: generateUnpublishedKey() })
         )
       }
     })

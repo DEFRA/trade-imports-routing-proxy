@@ -20,14 +20,17 @@ export function generateUnpublishedKey() {
   return generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey
 }
 
-export function signToken(claims, privateKey = signingKeys.privateKey) {
+export function signToken(
+  claims,
+  { privateKey = signingKeys.privateKey, kid = signingKeyId } = {}
+) {
   return Jwt.token.generate(
     claims,
     {
       key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
       algorithm: 'RS256'
     },
-    { header: { kid: signingKeyId } }
+    { header: { kid } }
   )
 }
 
