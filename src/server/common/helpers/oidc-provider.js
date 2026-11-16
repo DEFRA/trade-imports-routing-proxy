@@ -23,7 +23,7 @@ async function fetchJson(url) {
  * @param {import('pino').Logger} logger
  * @returns {Promise<Record<string, any>>} the discovery document
  */
-export async function fetchOidcDiscovery(logger) {
+export async function getOidcConfigWithRetry(logger) {
   const discoveryUrl = config.get('defraId.oidcDiscoveryUrl')
   const retryDelaysMs = [1000, 2000, 4000]
 

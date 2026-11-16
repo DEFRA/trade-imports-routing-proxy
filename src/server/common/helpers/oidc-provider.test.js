@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-import { fetchOidcDiscovery, readVerifiedClaims } from './oidc-provider.js'
+import { getOidcConfigWithRetry, readVerifiedClaims } from './oidc-provider.js'
 import {
   discoveryDocument,
   discoveryUrl,
@@ -10,20 +10,22 @@ import {
 
 const logger = { warn: vi.fn() }
 
-describe('#fetchOidcDiscovery', () => {
+describe('#getOidcConfigWithRetry', () => {
   afterEach(() => {
     vi.useRealTimers()
   })
 
   test('Should return the discovery document', async () => {
-    await expect(fetchOidcDiscovery(logger)).resolves.toEqual(discoveryDocument)
+    await expect(getOidcConfigWithRetry(logger)).resolves.toEqual(
+      discoveryDocument
+    )
   })
 
   test('Should return the discovery document once a retry succeeds', async () => {
     vi.useFakeTimers()
     global.fetch.mockResponseOnce('', { status: 503 })
 
-    const discovery = fetchOidcDiscovery(logger)
+    const discovery = getOidcConfigWithRetry(logger)
     await vi.advanceTimersByTimeAsync(1000)
 
     await expect(discovery).resolves.toEqual(discoveryDocument)
@@ -33,7 +35,7 @@ describe('#fetchOidcDiscovery', () => {
     vi.useFakeTimers()
     global.fetch.mockResponse('', { status: 503 })
 
-    const discovery = fetchOidcDiscovery(logger)
+    const discovery = getOidcConfigWithRetry(logger)
     const refusal = expect(discovery).rejects.toThrow(
       `OIDC discovery at ${discoveryUrl} failed after 4 attempts`
     )

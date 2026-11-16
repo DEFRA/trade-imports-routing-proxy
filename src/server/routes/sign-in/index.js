@@ -1,7 +1,7 @@
 import Bell from '@hapi/bell'
 
 import { config } from '#/config/config.js'
-import { fetchOidcDiscovery } from '#/server/common/helpers/oidc-provider.js'
+import { getOidcConfigWithRetry } from '#/server/common/helpers/oidc-provider.js'
 import {
   signInController,
   signInCallbackController,
@@ -50,7 +50,7 @@ export const signIn = {
     async register(server) {
       await server.register(Bell)
 
-      const discovery = await fetchOidcDiscovery(server.logger)
+      const discovery = await getOidcConfigWithRetry(server.logger)
       server.auth.strategy('defra-id', 'bell', defraIdBellOptions(discovery))
 
       server.route([
