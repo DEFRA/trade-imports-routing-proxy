@@ -159,7 +159,7 @@ export const config = convict({
   defraId: {
     oidcDiscoveryUrl: {
       doc: 'Defra ID OIDC well-known configuration URL',
-      format: String,
+      format: 'url',
       default:
         'http://localhost:3007/idphub/b2c/b2c_1a_cui_cpdev_signupsigninsfi/.well-known/openid-configuration',
       env: 'DEFRA_ID_OIDC_CONFIGURATION_URL'
@@ -191,7 +191,7 @@ export const config = convict({
     },
     redirectUrl: {
       doc: 'Redirect URL after Defra ID sign-in (OIDC callback)',
-      format: String,
+      format: 'url',
       default: 'http://localhost:3004/auth/sign-in-oidc',
       env: 'DEFRA_ID_REDIRECT_URL'
     }
