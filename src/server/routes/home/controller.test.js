@@ -15,7 +15,7 @@ describe('#homeController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  test('Should provide expected response', async () => {
+  test('Should render the home page with a 200 and the Home page title', async () => {
     const { result, statusCode } = await server.inject({
       method: 'GET',
       url: '/'
