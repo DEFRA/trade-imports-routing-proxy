@@ -11,7 +11,7 @@ import {
   serveOidcProvider,
   signToken,
   startTokenEndpoint
-} from '../../../../.vite/oidc-provider.js'
+} from '#/test-helpers/oidc-provider.js'
 
 const idTokenClaims = {
   sessionId: 'session-1',

@@ -6,7 +6,7 @@ import {
   discoveryUrl,
   generateUnpublishedKey,
   signToken
-} from '../../../../.vite/oidc-provider.js'
+} from '#/test-helpers/oidc-provider.js'
 
 const logger = { warn: vi.fn() }
 

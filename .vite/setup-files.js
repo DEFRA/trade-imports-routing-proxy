@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import createFetchMock from 'vitest-fetch-mock'
 
-import { serveOidcProvider } from './oidc-provider.js'
+import { serveOidcProvider } from '#/test-helpers/oidc-provider.js'
 
 const fetchMock = createFetchMock(vi)
 
