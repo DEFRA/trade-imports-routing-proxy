@@ -10,7 +10,7 @@ import { config } from '#/config/config.js'
 
 async function registerStaticAssets(server) {
   if (config.get('isProduction') || config.get('isTest')) {
-    server.register(serveStaticFiles)
+    await server.register(serveStaticFiles)
     return
   }
 
