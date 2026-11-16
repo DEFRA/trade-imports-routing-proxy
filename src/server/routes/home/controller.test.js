@@ -36,4 +36,16 @@ describe('#homeController', () => {
       '/auth/sign-in'
     )
   })
+
+  test('Should show sign-in as a standard button', async () => {
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+    const $ = cheerio.load(result)
+
+    expect($('[data-testid="app-page-body"] a').attr('class')).toBe(
+      'govuk-button'
+    )
+  })
 })
