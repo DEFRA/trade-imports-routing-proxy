@@ -24,7 +24,11 @@ export function generateUnpublishedKey() {
 
 export function signToken(
   claims,
-  { privateKey = signingKeys.privateKey, kid = signingKeyId } = {}
+  {
+    privateKey = signingKeys.privateKey,
+    kid = signingKeyId,
+    ttlSec = 3600
+  } = {}
 ) {
   return Jwt.token.generate(
     { iss: discoveryDocument.issuer, ...claims },
@@ -32,7 +36,7 @@ export function signToken(
       key: privateKey.export({ type: 'pkcs8', format: 'pem' }),
       algorithm: 'RS256'
     },
-    { header: { kid }, ttlSec: 3600 }
+    { header: { kid }, ttlSec }
   )
 }
 

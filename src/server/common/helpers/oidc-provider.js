@@ -69,6 +69,10 @@ export async function readVerifiedClaims(token, { jwksUri, issuer }) {
     throw new Error(`No key ${kid} published at ${jwksUri}`)
   }
 
+  if (decoded.decoded.payload.exp === undefined) {
+    throw new Error('Token missing payload exp value')
+  }
+
   const publicKey = createPublicKey({ key: signingKey, format: 'jwk' }).export({
     type: 'spki',
     format: 'pem'

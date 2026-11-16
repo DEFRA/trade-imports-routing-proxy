@@ -91,6 +91,14 @@ describe('#readVerifiedClaims', () => {
     )
   })
 
+  test('Should refuse a token with no expiry', async () => {
+    const token = signToken({ sessionId: 'session-1' }, { ttlSec: 0 })
+
+    await expect(readVerifiedClaims(token, identityProvider)).rejects.toThrow(
+      'Token missing payload exp value'
+    )
+  })
+
   test('Should refuse a token from another issuer', async () => {
     const token = signToken({
       sessionId: 'session-1',

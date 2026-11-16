@@ -45,6 +45,12 @@ export const auth = {
       await server.register(Bell)
 
       const discovery = await getOidcConfigWithRetry(server.logger)
+      if (!discovery.issuer) {
+        throw new Error(
+          `OIDC discovery at ${config.get('defraId.oidcDiscoveryUrl')} publishes no issuer`
+        )
+      }
+
       server.app.defraId = {
         jwksUri: discovery.jwks_uri,
         issuer: discovery.issuer
