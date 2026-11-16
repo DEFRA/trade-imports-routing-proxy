@@ -35,6 +35,13 @@ function cookieHeaderFrom(response) {
     .join('; ')
 }
 
+function metaRefreshUrlOf(payload) {
+  const content = cheerio
+    .load(payload)('meta[http-equiv="refresh"]')
+    .attr('content')
+  return new URL(content.match(/URL='(.*)'/)[1])
+}
+
 function summaryRows($, testId) {
   return $(`[data-testid="${testId}"] .govuk-summary-list__row`)
     .map((_index, row) => [
@@ -251,10 +258,29 @@ describe('Sign-in routes', () => {
     expect(signedIn.headers.location).toBe('/auth/sign-in')
   })
 
-  test('A callback with no sign-in state cookie is refused', async () => {
+  test('A first callback with no sign-in state cookie is answered with a page that retries it', async () => {
     const callback = await server.inject({
       method: 'GET',
-      url: '/auth/sign-in-oidc?code=code-1&state=state-1&refresh=1'
+      url: '/auth/sign-in-oidc?code=code-1&state=state-1'
+    })
+    const retryUrl = metaRefreshUrlOf(callback.payload)
+
+    expect(callback.statusCode).toBe(statusCodes.ok)
+    expect(retryUrl.pathname).toBe('/auth/sign-in-oidc')
+    expect(Object.fromEntries(retryUrl.searchParams)).toEqual({
+      code: 'code-1',
+      state: 'state-1',
+      refresh: '1'
+    })
+  })
+
+  test('A retried callback that still has no sign-in state cookie is refused', async () => {
+    const retriedCallbackUrl =
+      '/auth/sign-in-oidc?code=code-1&state=state-1&refresh=1'
+
+    const callback = await server.inject({
+      method: 'GET',
+      url: retriedCallbackUrl
     })
 
     expect(callback.statusCode).toBe(statusCodes.unauthorized)
