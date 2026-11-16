@@ -7,6 +7,7 @@ import {
   signInCallbackController,
   signedInController
 } from './controller.js'
+import { signInPath } from './paths.js'
 
 function defraIdBellOptions(discovery) {
   const clientId = config.get('defraId.clientId')
@@ -55,7 +56,7 @@ export const signIn = {
       server.route([
         {
           method: 'GET',
-          path: '/auth/sign-in',
+          path: signInPath,
           options: { auth: 'defra-id' },
           ...signInController
         },

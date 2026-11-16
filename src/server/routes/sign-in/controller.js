@@ -2,6 +2,7 @@ import Boom from '@hapi/boom'
 import Jwt from '@hapi/jwt'
 
 import { readVerifiedClaims } from '#/server/common/helpers/oidc-provider.js'
+import { signInPath } from './paths.js'
 
 const signInSessionKey = 'signIn'
 const signedInPath = '/auth/signed-in'
@@ -103,7 +104,7 @@ export const signedInController = {
 
     if (!signIn) {
       request.logger.info('No sign-in in the session, starting one')
-      return h.redirect('/auth/sign-in')
+      return h.redirect(signInPath)
     }
 
     return h.view('sign-in/signed-in', {
