@@ -45,6 +45,8 @@ services:
     links:
       - 'floci:floci'
       - 'redis:redis'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       floci:
         condition: service_healthy
@@ -60,6 +62,7 @@ services:
       SESSION_COOKIE_SECURE: false
       USE_SINGLE_INSTANCE_CACHE: true
       REDIS_TLS: false
+      DEFRA_ID_OIDC_CONFIGURATION_URL: http://host.docker.internal:3007/idphub/b2c/b2c_1a_cui_cpdev_signupsigninsfi/.well-known/openid-configuration
     networks:
       - cdp-tenant
 

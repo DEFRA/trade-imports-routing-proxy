@@ -1,0 +1,36 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+
+{% block content %}
+  {{ appHeading({
+    text: heading,
+    caption: "trade-imports-routing-proxy"
+  }) }}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      <h2 class="govuk-heading-m">ID token claims</h2>
+      {{ govukSummaryList({
+        attributes: { "data-testid": "id-token-claims" },
+        rows: signIn.idTokenClaims
+      }) }}
+
+      {% if signIn.accessTokenClaims %}
+        <h2 class="govuk-heading-m">Access token claims</h2>
+        {{ govukSummaryList({
+          attributes: { "data-testid": "access-token-claims" },
+          rows: signIn.accessTokenClaims
+        }) }}
+      {% else %}
+        <p class="govuk-body">The access token is the ID token.</p>
+      {% endif %}
+
+      <h2 class="govuk-heading-m">Token response</h2>
+      {{ govukSummaryList({
+        attributes: { "data-testid": "token-response" },
+        rows: signIn.tokenResponse
+      }) }}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,87 @@
+import { createPublicKey } from 'node:crypto'
+import Jwt from '@hapi/jwt'
+import { withTraceId } from '@defra/hapi-tracing'
+
+import { config } from '#/config/config.js'
+
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: withTraceId(config.get('tracing.header')),
+    signal: AbortSignal.timeout(5000)
+  })
+
+  if (!response.ok) {
+    throw new Error(`${url} answered ${response.status}`)
+  }
+
+  return response.json()
+}
+
+/**
+ * Fetches the identity provider's OIDC discovery document, retrying with
+ * back-off before giving up.
+ * @param {import('pino').Logger} logger
+ * @returns {Promise<Record<string, any>>} the discovery document
+ */
+export async function getOidcConfigWithRetry(logger) {
+  const discoveryUrl = config.get('defraId.oidcDiscoveryUrl')
+  const retryDelaysMs = [1000, 2000, 4000]
+
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetchJson(discoveryUrl)
+    } catch (err) {
+      const delayMs = retryDelaysMs[attempt - 1]
+
+      if (delayMs === undefined) {
+        throw new Error(
+          `OIDC discovery at ${discoveryUrl} failed after ${attempt} attempts`,
+          { cause: err }
+        )
+      }
+
+      logger.warn(
+        { err, discoveryUrl, attempt },
+        'OIDC discovery failed, retrying'
+      )
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
+  }
+}
+
+/**
+ * Checks a token's RS256 signature against the identity provider's published
+ * keys, its expiry and its issuer, and returns its claims. Does not check the
+ * audience. Throws when any check fails.
+ * @param {string} token
+ * @param {object} identityProvider
+ * @param {string} identityProvider.jwksUri
+ * @param {string} identityProvider.issuer the issuer the token must name
+ * @returns {Promise<Record<string, any>>} the token's claims
+ */
+export async function readVerifiedClaims(token, { jwksUri, issuer }) {
+  const decoded = Jwt.token.decode(token)
+  const { kid } = decoded.decoded.header
+  const { keys } = await fetchJson(jwksUri)
+  const signingKey = keys.find((key) => key.kid === kid)
+
+  if (!signingKey) {
+    throw new Error(`No key ${kid} published at ${jwksUri}`)
+  }
+
+  if (decoded.decoded.payload.exp === undefined) {
+    throw new Error('Token missing payload exp value')
+  }
+
+  const publicKey = createPublicKey({ key: signingKey, format: 'jwk' }).export({
+    type: 'spki',
+    format: 'pem'
+  })
+  Jwt.token.verify(
+    decoded,
+    { key: publicKey, algorithm: 'RS256' },
+    { aud: false, iss: issuer }
+  )
+
+  return decoded.decoded.payload
+}

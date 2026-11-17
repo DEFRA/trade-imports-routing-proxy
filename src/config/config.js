@@ -4,10 +4,14 @@ import { fileURLToPath } from 'node:url'
 
 import convictFormatWithValidator from 'convict-format-with-validator'
 
+import { callbackPath } from '#/server/routes/sign-in/paths.js'
+
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const fourHoursMs = 14400000
 const oneWeekMs = 604800000
+const defaultPort = 3000
+const defraIdStubPolicy = 'b2c_1a_cui_cpdev_signupsigninsfi'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isTest = process.env.NODE_ENV === 'test'
@@ -32,7 +36,7 @@ export const config = convict({
   port: {
     doc: 'The port to bind.',
     format: 'port',
-    default: 3000,
+    default: defaultPort,
     env: 'PORT'
   },
   staticCacheTimeout: {
@@ -154,6 +158,45 @@ export const config = convict({
         default: isProduction,
         env: 'SESSION_COOKIE_SECURE'
       }
+    }
+  },
+  defraId: {
+    oidcDiscoveryUrl: {
+      doc: 'Defra ID OIDC well-known configuration URL',
+      format: 'url',
+      default: `http://localhost:3007/idphub/b2c/${defraIdStubPolicy}/.well-known/openid-configuration`,
+      env: 'DEFRA_ID_OIDC_CONFIGURATION_URL'
+    },
+    clientId: {
+      doc: 'Defra ID client ID',
+      format: String,
+      default: 'test-client-id',
+      env: 'DEFRA_ID_CLIENT_ID'
+    },
+    clientSecret: {
+      doc: 'Defra ID client secret',
+      format: String,
+      default: 'test-secret',
+      env: 'DEFRA_ID_CLIENT_SECRET',
+      sensitive: true
+    },
+    serviceId: {
+      doc: 'Defra ID service ID',
+      format: String,
+      default: 'trade-imports-routing-proxy',
+      env: 'DEFRA_ID_SERVICE_ID'
+    },
+    policy: {
+      doc: 'Defra ID B2C policy name',
+      format: String,
+      default: defraIdStubPolicy,
+      env: 'DEFRA_ID_POLICY'
+    },
+    redirectUrl: {
+      doc: 'Redirect URL after Defra ID sign-in (OIDC callback)',
+      format: 'url',
+      default: `http://localhost:${defaultPort}${callbackPath}`,
+      env: 'DEFRA_ID_REDIRECT_URL'
     }
   },
   redis: {

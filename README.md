@@ -5,8 +5,9 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_trade-imports-routing-proxy&metric=coverage)](https://sonarcloud.io/summary/new_code?id=DEFRA_trade-imports-routing-proxy)
 
 The public entry point for the Import Notification Service (INS). It will serve the public INS URLs and forward each
-request to the INS service the path addresses. For now it serves only the template's home page and `/health`, to show
-the service is up.
+request to the INS service the path addresses. For now it serves the template's pages and `/health`, and signs a user
+in through the Defra ID stub (`/auth/sign-in`, `/auth/sign-in-oidc` and `/auth/signed-in`) to show what the sign-in
+returns.
 
 Built from the Core Delivery Platform Node.js Frontend Template.
 
@@ -17,6 +18,7 @@ Built from the Core Delivery Platform Node.js Frontend Template.
 - [Local Development](#local-development)
   - [Setup](#setup)
   - [Development](#development)
+  - [Signing in locally](#signing-in-locally)
   - [Production](#production)
   - [Npm scripts](#npm-scripts)
   - [Update dependencies](#update-dependencies)
@@ -101,6 +103,18 @@ To run the application in `development` mode run:
 npm run dev
 ```
 
+### Signing in locally
+
+Sign-in needs the Defra ID stub answering on port 3007. Either:
+
+- start the workspace stack, which runs `trade-imports-defra-id-stub`, or
+- run [trade-imports-defra-id-stub](https://github.com/DEFRA/trade-imports-defra-id-stub) natively with `npm run dev`
+
+The redirect URL must be on the port this service listens on. By default the service listens on port 3000 and
+redirects to `http://localhost:3000/auth/sign-in-oidc`. If you set `PORT`, set `DEFRA_ID_REDIRECT_URL` to match.
+
+To point at a different stub or policy, set `DEFRA_ID_OIDC_CONFIGURATION_URL`.
+
 ### Production
 
 To mimic the application running in `production` mode locally run:
@@ -180,7 +194,8 @@ A local environment with:
 - Floci (replacing Localstack) for AWS services (S3, SQS)
 - Redis
 - MongoDB
-- This service.
+- This service, signing in through the Defra ID stub on the host's port 3007 (see
+  [Signing in locally](#signing-in-locally)).
 - A commented out backend example.
 
 ```bash

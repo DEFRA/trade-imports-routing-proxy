@@ -1,3 +1,5 @@
+import * as cheerio from 'cheerio'
+
 import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
@@ -13,7 +15,7 @@ describe('#homeController', () => {
     await server.stop({ timeout: 0 })
   })
 
-  test('Should provide expected response', async () => {
+  test('Should render the home page with a 200 and the Home page title', async () => {
     const { result, statusCode } = await server.inject({
       method: 'GET',
       url: '/'
@@ -21,5 +23,29 @@ describe('#homeController', () => {
 
     expect(result).toEqual(expect.stringContaining('Home |'))
     expect(statusCode).toBe(statusCodes.ok)
+  })
+
+  test('Should link to sign-in', async () => {
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+    const $ = cheerio.load(result)
+
+    expect($('[data-testid="app-page-body"] a').attr('href')).toBe(
+      '/auth/sign-in'
+    )
+  })
+
+  test('Should show sign-in as a standard button', async () => {
+    const { result } = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+    const $ = cheerio.load(result)
+
+    expect($('[data-testid="app-page-body"] a').attr('class')).toBe(
+      'govuk-button'
+    )
   })
 })

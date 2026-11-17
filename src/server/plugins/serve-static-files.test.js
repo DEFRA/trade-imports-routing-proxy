@@ -1,4 +1,4 @@
-import { startServer } from '#/server/common/helpers/start-server.js'
+import { createServer } from '#/server/server.js'
 import { statusCodes } from '#/server/common/constants/status-codes.js'
 
 describe('#serveStaticFiles', () => {
@@ -6,14 +6,15 @@ describe('#serveStaticFiles', () => {
 
   describe('When secure context is disabled', () => {
     beforeEach(async () => {
-      server = await startServer()
+      server = await createServer()
+      await server.initialize()
     })
 
     afterEach(async () => {
       await server.stop({ timeout: 0 })
     })
 
-    test('Should serve favicon as expected', async () => {
+    test('Should answer GET /favicon.ico with 204 No Content', async () => {
       const { statusCode } = await server.inject({
         method: 'GET',
         url: '/favicon.ico'
