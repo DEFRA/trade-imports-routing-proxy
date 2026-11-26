@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=26.13.1"
   },
   "scripts": {
     "build:frontend": "vite build",
@@ -22,7 +22,7 @@
     "lint:scss": "stylelint \"src/**/*.scss\" --cache --cache-location .cache/stylelint --cache-strategy content --color --ignore-path .gitignore",
     "test": "AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest run --coverage",
     "test:watch": "AWS_EMF_ENVIRONMENT=Local TZ=UTC vitest",
-    "security-audit": "npm audit --audit-level=critical",
+    "security-audit": "audit-ci --config audit-ci.jsonc",
     "server:watch": "nodemon --inspect=0.0.0.0 --ext js,json --legacy-watch --watch ./src/server --watch ./src/config --env-file-if-exists=.env ./src",
     "server:debug": "nodemon --inspect-brk=0.0.0.0 --ext js,json --legacy-watch --watch ./src/server --watch ./src/config --env-file-if-exists=.env ./src",
     "prestart": "npm run build:frontend",
@@ -62,7 +62,7 @@
     "hapi-pino": "13.0.0",
     "hapi-pulse": "4.0.0",
     "ioredis": "6.0.0",
-    "joi": "18.2.9",
+    "joi": "18.3.2",
     "lodash": "4.18.1",
     "nunjucks": "3.2.4",
     "pino": "10.4.0",
@@ -72,6 +72,7 @@
     "@babel/preset-env": "8.0.7",
     "@defra/hapi-connect": "1.0.2",
     "@vitest/coverage-v8": "4.1.11",
+    "audit-ci": "7.1.0",
     "cheerio": "1.2.0",
     "eslint": "9.39.5",
     "husky": "9.1.7",

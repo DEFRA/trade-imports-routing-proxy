@@ -1,0 +1,14 @@
+{
+  "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
+  "high": true,
+  "report-type": "summary",
+  "allowlist": [
+    {
+      "GHSA-4528-x5fx-h6hg": {
+        "active": true,
+        "notes": "joi email({ multiple: true }) denial of service: hapi-pulse 4.0.0, its latest release, pins joi ~18.2.1 and blankie 5.0.0 pins @hapi/joi ^17.1.0, and no version either allows is fixed. Our own joi is on the fixed 18.3.2. Owner: Sam Farrington",
+        "expiry": "2027-01-25"
+      }
+    }
+  ]
+}

@@ -23,10 +23,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-
-      - name: Security audit
-        run: npm run security-audit
-
       - run: |
           npm ci
           npm run build:frontend
@@ -34,15 +30,46 @@ jobs:
           npm run lint
           npm test
 
+      - name: Check audit allowlist
+        run: |
+          set -euo pipefail
+          today=$(date -u +%F)
+          limit=$(date -u -d '+3 months' +%F)
+          problems=$(jq -r --arg today "$today" --arg limit "$limit" '
+            .allowlist[]
+            | if type != "object" or length == 0 then "\(tojson): must be {\"GHSA-...\": {active, notes, expiry}}"
+              else to_entries[] | .key as $id | .value as $e
+                | if ($e | type) != "object" then "\($id): must be {active, notes, expiry}"
+                  else
+                    (if ($id | test("^GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$") | not) then "\($id): key is not a GHSA ID" else empty end),
+                    (if $e.active != true then "\($id): active must be true, or audit-ci ignores the entry" else empty end),
+                    (if (($e.notes // "") | tostring | test("\\S.*Owner: \\S")) | not then "\($id): notes must give a reason and \"Owner: <name>\"" else empty end),
+                    (if ($e.expiry | type) != "string"
+                        or ($e.expiry | try (strptime("%Y-%m-%d") | mktime | strftime("%Y-%m-%d")) catch null) != $e.expiry
+                       then "\($id): expiry is missing or not a real YYYY-MM-DD date"
+                     elif $e.expiry <= $today then "\($id): EXPIRED on \($e.expiry). Re-check the advisory, then renew or remove the entry"
+                     elif $e.expiry > $limit then "\($id): expiry \($e.expiry) is more than 3 months away (latest allowed \($limit))"
+                     else empty end)
+                  end
+              end' audit-ci.jsonc)
+          if [ -n "$problems" ]; then
+            echo "::error title=Audit allowlist::audit-ci.jsonc breaks the allowlist rules"
+            echo "$problems"
+            exit 1
+          fi
+          echo "Audit allowlist entries meet the rules"
+
+      - name: Security audit
+        run: npm run security-audit
+
       - name: Test Docker Image Build
         run: |
           set +e
           docker build --no-cache --tag cdp-node-frontend-template .
           exit $?
 
-#      - name: SonarCloud Scan
-#        if: github.actor != 'dependabot[bot]'
-#        uses: SonarSource/sonarqube-scan-action@v5.3.1 #  (or check latest version on https://github.com/marketplace/actions/official-sonarqube-scan)
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        if: github.actor != 'dependabot[bot]'
+        uses: SonarSource/sonarqube-scan-action@70bad232163b09d998ea0707ee80c0ec80798c16 # v8.5.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
